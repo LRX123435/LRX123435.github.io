@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>找出小蛋糕</title>
+    <style>
+        body { font-family: Arial; text-align: center; background: #f0f8ff; padding: 20px; }
+        h2 { color: #ff6b6b; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px auto; max-width: 300px; }
+        .img { width: 100%; height: 100px; object-fit: cover; border: 3px solid #ccc; border-radius: 10px; cursor: pointer; }
+        .selected { border-color: #4dabf7; box-shadow: 0 0 10px blue; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; background: #4dabf7; color: white; border: none; border-radius: 5px; }
+        .result { margin: 20px; padding: 10px; font-weight: bold; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .hint { color: #666; font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>🎂 找出所有正确答案 🎂</h2>
+    <p>点击包含小蛋糕的图片，然后点击验证</p>
+    <div class="grid">
+        <img src="https://i.ibb.co/9H839xwC/image-download-1763207181735.jpg" class="img" id="correct1">
+        <img src="https://i.ibb.co/JF7hkw9k/image-download-1751109353103.jpg" class="img" id="correct2">
+        <img src="https://i.ibb.co/xKMbSsF3/Screenshot-20250417-180432-com-smile-gifmaker-edit-625033055697856.jpg" class="img" id="correct3">
+        <img src="https://i.ibb.co/mr7FxmQQ/image-download-1755693886892.jpg" class="img" id="correct4">
+        <!-- 错误答案在中间 -->
+        <img src="https://i.ibb.co/SXhwzmFB/1763629404795.webp" class="img" id="wrong">
+        <img src="https://i.ibb.co/q3vShNHP/image-download-1760530698714.jpg" class="img" id="correct5">
+        <img src="https://i.ibb.co/3y2vkkWT/mmexport1763621932929.jpg" class="img" id="correct6">
+        <img src="https://i.ibb.co/nqqYytYK/emotion-download-1763622008382.jpg" class="img" id="correct7">
+        <img src="https://i.ibb.co/3bbxQjg/image-download-1763622027840.jpg" class="img" id="correct8">
+    </div>
+    <button onclick="checkAnswer()">验证答案</button>
+    <button onclick="resetGame()">重新开始</button>
+    <div id="result" class="result"></div>
+    <div id="hint" class="hint"></div>
+    
+    <script>
+        let selected = []; 
+        let wrongAttempts = 0; // 记录选错次数
+        const correctIds = ["correct1", "correct2", "correct3", "correct4", "correct5", "correct6", "correct7", "correct8"];
+        const wrongId = "wrong";
+        
+        // 错误提示语数组 - 你的个性化版本
+        const wrongMessages = [
+            "你是人机吗🤨",
+            "请输入文字",
+            "竹都比你会选，拉完了",
+            "恭喜你🥳🥳，成就-九牛二虎之力"
+        ];
+        
+        document.querySelectorAll('.img').forEach(img => {
+            img.addEventListener('click', function() {
+                this.classList.toggle('selected');
+                if(this.classList.contains('selected')) { 
+                    selected.push(this.id); 
+                } else { 
+                    selected = selected.filter(id => id !== this.id); 
+                }
+            });
+        });
+        
+        function checkAnswer() {
+            const resultDiv = document.getElementById('result');
+            const hintDiv = document.getElementById('hint');
+            const selectedCount = selected.length;
+            
+            if (selectedCount === 0) { 
+                resultDiv.textContent = "请先选择图片！"; 
+                resultDiv.className = "result error"; 
+                hintDiv.textContent = "";
+                return; 
+            }
+            
+            // 检查是否选中了错误答案
+            const hasWrong = selected.includes(wrongId);
+            
+            // 检查是否选中了所有正确答案
+            const hasAllCorrect = correctIds.every(id => selected.includes(id));
+            
+            if (!hasWrong && hasAllCorrect && selectedCount === 8) { 
+                resultDiv.textContent = "🎉 恭喜！你找到了所有正确答案！"; 
+                resultDiv.className = "result success";
+                // 成功后的个性化提示
+                if (wrongAttempts >= 4) {
+                    hintDiv.textContent = "恭喜你🥳🥳，成就-九牛二虎之力";
+                } else {
+                    hintDiv.textContent = "太棒了！你成功了！";
+                }
+                wrongAttempts = 0; // 重置错误次数
+
+                // 为所有正确答案添加动画
+                correctIds.forEach(id => {
+                    document.getElementById(id).style.animation = "pulse 0.5s 3";
+                });
+            } else {
+                wrongAttempts++;
+                let errorMessage = "";
+                
+                if (hasWrong) {
+                    errorMessage = "❌ 请坚定你内心的选择！";
+                } else if (!hasAllCorrect) {
+                    errorMessage = "❌ 还没找全所有正确答案！";
+                } else {
+                    errorMessage = "❌ 选择错误，请重新尝试！";
+                }
+                
+                resultDiv.textContent = errorMessage; 
+                resultDiv.className = "result error";
+                
+                // 根据错误次数显示不同的个性化提示语
+                if (wrongAttempts <= wrongMessages.length) {
+                    hintDiv.textContent = wrongMessages[wrongAttempts - 1];
+                } else {
+                    hintDiv.textContent = "需要重新开始吗？点击'重新开始'按钮！";
+                }
+            }
+        }
+        
+        function resetGame() { 
+            selected = []; 
+            wrongAttempts = 0; // 重置错误次数
+            document.querySelectorAll('.img').forEach(img => { 
+                img.classList.remove('selected'); 
+                img.style.animation = ''; 
+            }); 
+            document.getElementById('result').textContent = ""; 
+            document.getElementById('hint').textContent = "";
+        }
+        
+        const style = document.createElement('style'); 
+        style.textContent = `@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }`; 
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
